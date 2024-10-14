@@ -3,8 +3,13 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing import image
 import os
+import base64
+from io import BytesIO
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)  # Habilita o CORS em todas as rotas
 
 # Carregar o modelo salvo
 modelo_carregado = tf.keras.models.load_model('modelo_identificacao.keras')
@@ -22,30 +27,31 @@ def classificar_imagem(img_array):
 
 @app.route('/classificar', methods=['POST'])
 def classificar():
-    # Verifica se a requisição contém um arquivo
-    if 'file' not in request.files:
-        return jsonify({'error': 'Nenhum arquivo enviado.'}), 400
+    data = request.get_json()
 
-    file = request.files['file']
-
-    if file.filename == '':
-        return jsonify({'error': 'Nenhum arquivo selecionado.'}), 400
+    # Verifica se a requisição contém a imagem
+    if 'inputs' not in data or len(data['inputs']) == 0 or 'data' not in data['inputs'][0]:
+        return jsonify({'error': 'Nenhuma imagem enviada.'}), 400
     
-    # Salvar o arquivo temporariamente
-    img_path = os.path.join('temp', file.filename)
-    os.makedirs('temp', exist_ok=True)  # Cria a pasta temp se não existir
-    file.save(img_path)
+    base64_image = data['inputs'][0]['data']['image']['base64']
 
-    # Processa a imagem
-    img = image.load_img(img_path, target_size=(128, 128))
+    # Decodifica a imagem base64
+    try:
+        img_data = base64.b64decode(base64_image)
+    except Exception as e:
+        return jsonify({'error': 'Falha ao decodificar a imagem.'}), 400
+
+    # Carrega a imagem em um formato utilizável
+    try:
+        img = image.load_img(BytesIO(img_data), target_size=(128, 128))
+    except Exception as e:
+        return jsonify({'error': 'Erro ao carregar a imagem.'}), 400
+
     img_array = image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)  # Adiciona a dimensão do batch
     
     # Classificar a imagem
     resultado = classificar_imagem(img_array)
-
-    # Remover a imagem temporária
-    os.remove(img_path)
 
     return jsonify({'classe': resultado})
 
