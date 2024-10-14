@@ -1,2 +1,2 @@
 [start]
-cmd = "index.py"
+cmd = "python index.py"
