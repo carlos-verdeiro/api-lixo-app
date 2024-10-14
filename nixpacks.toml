@@ -1,2 +1,2 @@
 [start]
-cmd = "api/teste.py"
+cmd = "app.py"
