@@ -1,0 +1,4 @@
+# nixpacks.toml
+
+[build]
+cmd = "pip install -r requirements.txt"
