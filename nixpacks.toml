@@ -4,4 +4,4 @@
 cmd = "pip install -r requirements.txt"
 
 [start]
-cmd = "python app.py"  # Este comando pode ser opcional se o Procfile estiver presente
+cmd = "python index.py"  # Este comando pode ser opcional se o Procfile estiver presente
