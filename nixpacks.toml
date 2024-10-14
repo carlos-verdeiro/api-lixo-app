@@ -1,2 +1,2 @@
 [start]
-cmd = "api/index.py"
+cmd = "api/teste.py"
